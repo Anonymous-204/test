@@ -23,10 +23,26 @@ def index_view(request):
     if not request.user.is_authenticated:
         return redirect('/login/')  # Chưa login thì đẩy về login
 
+
+    # Các task đã giao và đang nhận
+    tasks_i_assign = Task.objects.filter(assigner=request.user).order_by('-created_at')
+    tasks_i_receive = Task.objects.filter(assignee=request.user).order_by('-created_at')
+
     return render(request, "index.html", {
-        "user": request.user  # Gửi thông tin người dùng vào template
+        "user": request.user,
+        "tasks_i_assign": tasks_i_assign,
+        "tasks_i_receive": tasks_i_receive
+    })
+@login_required
+def archive_view(request):
+    tasks_assigned = Task.objects.filter(assigner=request.user, is_completed=True)
+    tasks_received = Task.objects.filter(assignee=request.user, is_completed=True)
+    return render(request, "archive.html", {
+        "tasks_assigned": tasks_assigned,
+        "tasks_received": tasks_received
     })
 
+# hàm đăng ký
 @csrf_exempt
 def register_api(request): 
     print("=== ĐÃ VÀO HÀM register_api ===")
@@ -58,7 +74,7 @@ def register_api(request):
 
     return JsonResponse({"message": "Chỉ chấp nhận POST."}, status=405)
 
-
+# hàm đăng nhập
 @csrf_exempt
 def login_api(request):
     if request.method == "POST":
@@ -92,141 +108,76 @@ def login_api(request):
 
 
 
-# @login_required(login_url="/login/")
-# def index_view(request):
-#     """Trang chủ: hiển thị task + xử lý form giao việc."""
-#     if request.method == "POST":
-#         assignee_username = request.POST.get("assignee").strip()
-#         content           = request.POST.get("content").strip()
-#         deadline          = request.POST.get("deadline")
 
-#         # Tìm người nhận
-#         try:
-#             assignee = User.objects.get(username=assignee_username)
-#             Task.objects.create(
-#                 assigner=request.user,
-#                 assignee=assignee,
-#                 content=content,
-#                 deadline=deadline
-#             )
-#             messages.success(request, f"Đã giao việc cho {assignee_username}.")
-#         except User.DoesNotExist:
-#             messages.error(request, "Không tìm thấy người nhận.")
-
-#         # 🡒 PRG‑pattern: redirect để tránh gửi lại form khi reload
-#         return redirect("index")              # tên urlpattern Trang chủ
-
-#     # --- GET: hiển thị task đang hoạt động ---
-#     tasks_i_receive = Task.objects.filter(assignee=request.user, is_done=False)
-#     tasks_i_assign  = Task.objects.filter(assigner=request.user, is_done=False)
-
-#     return render(
-#         request,
-#         "index.html",
-#         {
-#             "tasks_i_receive": tasks_i_receive,
-#             "tasks_i_assign":  tasks_i_assign,
-#         },
-#     )
-
-@require_POST
+@csrf_exempt
 @login_required
 def add_task_view(request):
-    assignee_username = request.POST.get("assignee", "").strip()
-    content           = request.POST.get("content", "").strip()
-    deadline          = request.POST.get("deadline")
+    if request.method == 'POST':
+        assignee_username = request.POST.get('assignee')
+        content = request.POST.get('content')
+        deadline = request.POST.get('deadline')
 
-    if not (assignee_username and content and deadline):
-        return JsonResponse({"error": "Thiếu thông tin."}, status=400)
+        try:
+            assignee = User.objects.get(username=assignee_username)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Người nhận không tồn tại'}, status=400)
 
-    try:
-        assignee = User.objects.get(username=assignee_username)
-    except User.DoesNotExist:
-        return JsonResponse({"error": "Người nhận không tồn tại."}, status=404)
+        task = Task.objects.create(
+            assigner=request.user,
+            assignee=assignee,
+            content=content,
+            deadline=deadline
+        )
 
-    task = Task.objects.create(
-        assigner=request.user,
-        assignee=assignee,
-        content=content,
-        deadline=deadline
-    )
+        return JsonResponse({
+            'content': task.content,
+            'assignee': task.assignee.username,
+            'deadline': task.deadline.strftime('%Y-%m-%d')
+        })
 
-    return JsonResponse({
-        "content": task.content,
-        "assignee": task.assignee.username,
-        "deadline": task.deadline.strftime("%Y-%m-%d")
+    return JsonResponse({'error': 'Yêu cầu không hợp lệ'}, status=400)
+
+
+# nút bấm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Task
+
+@login_required
+def index_view(request):
+    tasks_i_assign = Task.objects.filter(assigner=request.user, is_completed=False)
+    tasks_i_receive = Task.objects.filter(assignee=request.user, is_completed=False)
+    return render(request, "index.html", {
+        "user": request.user,
+        "tasks_i_assign": tasks_i_assign,
+        "tasks_i_receive": tasks_i_receive
     })
 
+@login_required
+def archive_view(request):
+    tasks_assigned = Task.objects.filter(assigner=request.user, is_completed=True)
+    tasks_received = Task.objects.filter(assignee=request.user, is_completed=True)
+    return render(request, "archive.html", {
+        "tasks_assigned": tasks_assigned,
+        "tasks_received": tasks_received
+    })
 
+@login_required
+def complete_task_view(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.user != task.assignee:
+        return JsonResponse({'error': 'Không có quyền hoàn thành'}, status=403)
 
+    task.is_completed = True
+    task.save()
+    return JsonResponse({'success': True})
 
+@login_required
+def delete_task_view(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.user != task.assigner:
+        return JsonResponse({'error': 'Không có quyền xoá'}, status=403)
 
-
-
-
-
-# from .models import FriendRequest
-
-# @require_POST
-# @login_required
-# def send_friend_request(request):
-#     to_username = request.POST.get("username", "").strip()
-#     if not to_username:
-#         return JsonResponse({"error": "Thiếu tên người dùng."}, status=400)
-
-#     # Không tự gửi cho chính mình
-#     if to_username == request.user.username:
-#         return JsonResponse({"error": "Không thể kết bạn với chính mình."}, status=400)
-
-#     try:
-#         to_user = User.objects.get(username=to_username)
-#     except User.DoesNotExist:
-#         return JsonResponse({"error": "Người dùng không tồn tại."}, status=404)
-
-#     # Đã là bạn?
-#     if to_user.profile in request.user.profile.friends.all():
-#         return JsonResponse({"error": "Đã là bạn bè."}, status=400)
-
-#     # Đã có request chờ?
-#     fr, created = FriendRequest.objects.get_or_create(
-#         sender   = request.user,
-#         receiver = to_user,
-#         defaults = {"status": FriendRequest.PENDING}
-#     )
-#     if not created:
-#         if fr.status == FriendRequest.PENDING:
-#             return JsonResponse({"error": "Đã gửi yêu cầu, đang chờ."}, status=400)
-#         # nếu đã reject trước thì cho phép tạo mới
-#         fr.status = FriendRequest.PENDING
-#         fr.save()
-
-#     return JsonResponse({"message": "Đã gửi lời mời kết bạn."})
-
-# @require_POST
-# @login_required
-# def respond_friend_request(request):
-#     fr_id  = request.POST.get("id")
-#     action = request.POST.get("action")  # "accept" / "reject"
-#     try:
-#         fr = FriendRequest.objects.get(id=fr_id, receiver=request.user, status=FriendRequest.PENDING)
-#     except FriendRequest.DoesNotExist:
-#         return JsonResponse({"error": "Yêu cầu không hợp lệ."}, status=404)
-
-#     if action == "accept":
-#         fr.accept()
-#         return JsonResponse({"message": "Đã chấp nhận."})
-#     elif action == "reject":
-#         fr.reject()
-#         return JsonResponse({"message": "Đã từ chối."})
-#     return JsonResponse({"error": "Hành động không hợp lệ."}, status=400)
-
-# @login_required
-# def friends_page(request):
-#     pending_in  = FriendRequest.objects.filter(receiver=request.user, status=FriendRequest.PENDING)
-#     pending_out = FriendRequest.objects.filter(sender=request.user, status=FriendRequest.PENDING)
-#     friends     = request.user.profile.friends.all()
-#     return render(request, "friends.html", {
-#         "pending_in":  pending_in,
-#         "pending_out": pending_out,
-#         "friends":     friends,
-#     })
+    task.delete()
+    return JsonResponse({'success': True})

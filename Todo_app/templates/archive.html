@@ -1,11 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block content %}
+<h2>📦 Các công việc đã hoàn thành</h2>
+
+<h3>Bạn đã giao</h3>
+{% for task in tasks_assigned %}
+  <div class="task-card">
+    <strong>{{ task.content }}</strong><br>
+    Người nhận: {{ task.assignee.username }}<br>
+    Deadline: {{ task.deadline }}
+  </div>
+{% empty %}
+  <p>Không có công việc nào đã giao.</p>
+{% endfor %}
+
+<h3>Bạn đã nhận</h3>
+{% for task in tasks_received %}
+  <div class="task-card">
+    <strong>{{ task.content }}</strong><br>
+    Giao bởi: {{ task.assigner.username }}<br>
+    Deadline: {{ task.deadline }}
+  </div>
+{% empty %}
+  <p>Không có công việc nào đã nhận.</p>
+{% endfor %}
+{% endblock %}

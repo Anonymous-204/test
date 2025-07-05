@@ -46,15 +46,7 @@
           <button type="submit" class="btn1">Giao</button>
         </form>
       </div>
-      <!-- Form thêm bạn -->
-      <div id="add-friend-form" class="hidden" style="margin-top:1rem;">
-        <form id="friend-form" method="POST">
-          {% csrf_token %}
-          <input type="text" name="username" placeholder="Tên người dùng" required />
-          <button type="submit">Gửi yêu cầu</button>
-        </form>
-        <p id="friend-message"></p>
-      </div>
+      
 
     </div>
     <div class="nav-center">
@@ -78,11 +70,26 @@
 
 
   <div id="sent-tasks" class="task-list" style="margin-top: 2rem;">
+
+    <div id="received-tasks" class="task-list" style="margin-top: 2rem;">
+      <h2>Các công việc bạn đang nhận</h2>
+      {% for task in tasks_i_receive %}
+        <div class="task-card">
+          <strong>{{ task.content }}</strong><br>Giao bởi: {{ task.assigner.username }}<br>
+          Deadline: {{ task.deadline }}
+          <button onclick="completeTask({{ task.id }})">✔ Hoàn thành</button>
+        </div>
+      {% empty %}
+        <p>Bạn chưa nhận công việc nào.</p>
+      {% endfor %}
+    </div>
+
     <h2>Các công việc bạn đã giao</h2>
       {% for task in tasks_i_assign %}
         <div class="task-card">
           <strong>{{ task.content }}</strong><br>Giao cho: {{ task.assignee.username }}<br>
           Deadline: {{ task.deadline }}
+          <button onclick="completeTask({{ task.id }})">✔ Hoàn thành</button>
         </div>
       {% empty %}
         <p>Chưa có công việc nào được giao.</p>

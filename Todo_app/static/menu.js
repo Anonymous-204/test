@@ -119,24 +119,36 @@ function getCookie(name) {
     .find(c => c.startsWith(name + "="))
     ?.split("=")[1] ?? "";
 }
+// công việc
 
+function completeTask(taskId) {
+  fetch(`/complete-task/${taskId}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCookie("csrftoken") }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const card = document.getElementById(`task-${taskId}`);
+      if (card) card.remove();
+    } else {
+      alert(data.error || "Có lỗi khi hoàn thành công việc.");
+    }
+  });
+}
 
-
-// kết bạn
-// document.getElementById("friend-form").addEventListener("submit", function(e) {
-//     e.preventDefault();
-//     const formData = new FormData(this);
-
-//     fetch("/send-friend-request/", {
-//       method: "POST",
-//       headers: {
-//         "X-CSRFToken": getCookie("csrftoken")
-//       },
-//       body: formData
-//     })
-//     .then(res => res.json())
-//     .then(data => {
-//       document.getElementById("message").innerText = data.message || data.error;
-//       this.reset();
-//     });
-//   });
+function deleteTask(taskId) {
+  fetch(`/delete-task/${taskId}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCookie("csrftoken") }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const card = document.getElementById(`task-${taskId}`);
+      if (card) card.remove();
+    } else {
+      alert(data.error || "Không thể xoá công việc.");
+    }
+  });
+}

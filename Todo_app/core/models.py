@@ -26,6 +26,6 @@ class Task(models.Model):
     deadline = models.DateField()
     is_done = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    is_completed = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.content} ({self.assigner.username} → {self.assignee.username})"
