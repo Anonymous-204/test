@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Danh sách bạn bè</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f7f7f7;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .friend-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .friend-box {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .friend-box:hover {
+      background-color: #eef;
+    }
+    .no-friends {
+      text-align: center;
+      color: gray;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>👥 Danh sách bạn bè của {{ user.username }}</h1>
+
+  {% if user.profile.friends.all %}
+    <div class="friend-list">
+      {% for friend in user.profile.friends.all %}
+        <div class="friend-box">
+          <strong>{{ friend.username }}</strong><br/>
+          {% if friend.profile.bio %}
+            <small>{{ friend.profile.bio|truncatewords:10 }}</small>
+          {% else %}
+            <small>Chưa có mô tả</small>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-friends">Bạn chưa có người bạn nào.</div>
+  {% endif %}
+</body>
+</html>

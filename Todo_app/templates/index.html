@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'style2.css' %}" />
+  <script src="{% static 'menu.js' %}" defer></script>
+</head>
+<body>
+  {% if messages %}
+    <ul class="msg-list">
+      {% for m in messages %}
+        <li class="msg {{ m.tags }}">{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  <!-- Thanh menu ngang -->
+  <nav class="navbar">
+    <div class="nav-left">
+      📝 Todo App
+      <a href="/archive/">✅ Hoàn thành</a>
+      <!-- Nút mở menu Thành viên -->
+       
+      <button id="member-button">👥 Thành viên ⏷</button>
+      <div class="dropdown hidden" id="member-dropdown">
+        <a href="/friends/" >Bạn bè</a>
+        <a href="#" id="toggle-addfriend">Thêm bạn</a>
+        <a href="/friends/">Lời mời kết bạn</a>
+      </div>
+
+
+
+      <!-- Nút mở form -->
+      <button id="show-form-task" class="btn1">+ Giao việc</button>
+
+      <!-- Form giao việc -->
+      <div id="assignForm" style="display:none; margin-top:1rem;">
+        <form id="assign-form" method="POST">
+          {% csrf_token %}
+          <input type="text" name="assignee" placeholder="Tên người nhận" required>
+          <input type="text" name="content"   placeholder="Nội dung công việc" required>
+          <input type="date" name="deadline"  required>
+          <button type="submit" class="btn1">Giao</button>
+        </form>
+      </div>
+      <!-- Form thêm bạn -->
+      <div id="add-friend-form" class="hidden" style="margin-top:1rem;">
+        <form id="friend-form" method="POST">
+          {% csrf_token %}
+          <input type="text" name="username" placeholder="Tên người dùng" required />
+          <button type="submit">Gửi yêu cầu</button>
+        </form>
+        <p id="friend-message"></p>
+      </div>
+
+    </div>
+    <div class="nav-center">
+      <a href="/">Trang chủ</a>
+    </div>
+    <div class="nav-right" id="user-menu">
+      <button id="account">👤 Tài khoản ⏷</button>
+      <div class="dropdown hidden" id="dropdown-menu">
+        <a href="/profile/">Hồ sơ</a>
+        <a href="/changepassword/">Đổi mật khẩu</a>
+        <a href="/logout/">Đăng xuất</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Nội dung chính -->
+  <main class="main-content">
+    <h1>Chào mừng bạn đến với Todo App</h1>
+    <p>Xin chào {{ user.username }}</p>
+  </main>
+
+
+  <div id="sent-tasks" class="task-list" style="margin-top: 2rem;">
+    <h2>Các công việc bạn đã giao</h2>
+      {% for task in tasks_i_assign %}
+        <div class="task-card">
+          <strong>{{ task.content }}</strong><br>Giao cho: {{ task.assignee.username }}<br>
+          Deadline: {{ task.deadline }}
+        </div>
+      {% empty %}
+        <p>Chưa có công việc nào được giao.</p>
+      {% endfor %}
+  </div>
+</body>
+</html>

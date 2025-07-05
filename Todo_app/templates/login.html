@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập{% endblock  %}
+{%block content%}
+<div class="form-container">
+  <h2>Đăng nhập</h2>
+  <div class="switch" >
+    <span style=" background-color:white; ">Đăng nhập</span>
+    <span onclick="toregister()">Đăng ký</span>
+  </div>
+  <input type="text" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Mật khẩu">
+  <div style="text-align: center;">
+    <label style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;text-align: left;">
+      <input type="checkbox" />
+      Ghi nhớ đăng nhập
+    </label>
+  </div>
+
+
+
+
+  <button class ="btn1" onclick="login()">Đăng nhập</button>
+  {% comment %} <h5><a href="/register/">bạn chưa có tài khoản?</a></h5> {% endcomment %}
+  <div class ="social-text"><p>Hoặc tiếp tục với</p></div>
+  <div class="social-login">
+    <div style="display: flex; justify-content: center;">
+      <button class="social-btn google" onclick="alert('Google login placeholder')">
+        <svg xmlns="http://www.w3.org/2000/svg" height="13.3" width="12" viewBox="0 0 488 512"><path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"/></svg>
+        Google
+      </button>
+      <button class="social-btn facebook" onclick="alert('Facebook login placeholder')">
+        <svg xmlns="http://www.w3.org/2000/svg" height="13.3" width="13.3" viewBox="0 0 512 512"><path d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z"/></svg>
+        Facebook
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function toregister() {
+  window.location.href = "/register/";  // chuyển trang hiện tại sang URL này
+  }
+  async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      const response = await fetch("/api/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Đăng nhập thành công!");
+        window.location.href = "/"; 
+      } else {
+        alert("Lỗi: " + (data.message || "Email hoặc mật khẩu sai."));
+      }
+    } catch (error) {
+      alert("Lỗi kết nối: " + error.message);
+    }
+  }
+
+  // Lấy CSRF token từ cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + "=")) {
+          cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+</script>
+{% endblock %}
