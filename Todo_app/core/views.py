@@ -19,7 +19,22 @@ def register_view(request):
 @login_required
 def friends_view(request):
     all_users = User.objects.all().order_by("username")
-    return render(request, "friends.html", {"friends": all_users})
+
+    friends_info = []
+    for user in all_users:
+        num_assigned = Task.objects.filter(assigner=user, is_completed=False).count()
+        num_received = Task.objects.filter(assignee=user, is_completed=False).count()
+
+        friends_info.append({
+            "user": user,
+            "num_assigned": num_assigned,
+            "num_received": num_received,
+        })
+
+    return render(request, "friends.html", {
+        "friends": friends_info,
+        "user": request.user
+    })
 
 @login_required
 def archive_view(request):
@@ -95,7 +110,7 @@ def login_api(request):
     return JsonResponse({"message": "Chỉ chấp nhận POST."}, status=405)
 
 
-
+# hàm giao việc
 
 @csrf_exempt
 @login_required
