@@ -12,4 +12,5 @@ urlpatterns = [
     path('archive/', views.archive_view, name='archive'),
     path('complete-task/<int:task_id>/', views.complete_task_view, name='complete_task'),
     path('delete-task/<int:task_id>/', views.delete_task_view, name='delete_task'),
+    path("delete-archived-task/<int:task_id>/", views.delete_archived_task, name="delete_archived_task"),
 ]

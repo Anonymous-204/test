@@ -162,7 +162,7 @@ def archive_view(request):
         "tasks_assigned": tasks_assigned,
         "tasks_received": tasks_received
     })
-
+# xoá/hoàn thành công việc
 @login_required
 def complete_task_view(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -181,3 +181,17 @@ def delete_task_view(request, task_id):
 
     task.delete()
     return JsonResponse({'success': True})
+# xoá trong archive
+@login_required
+@require_POST
+def delete_archived_task(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id, is_completed=True)
+        if task.assigner != request.user and task.assignee != request.user:
+            return JsonResponse({'success': False, 'error': 'Bạn không có quyền xoá task này.'}, status=403)
+
+        task.delete()
+        return JsonResponse({'success': True})
+    except Task.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Không tìm thấy task.'}, status=404)
+

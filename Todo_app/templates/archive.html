@@ -1,27 +1,139 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>📦 Các công việc đã hoàn thành</title>
+  {% load static %}
+  <script src="{% static 'menu.js' %}" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
 
-{% block content %}
-<h2>📦 Các công việc đã hoàn thành</h2>
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
 
-<h3>Bạn đã giao</h3>
-{% for task in tasks_assigned %}
-  <div class="task-card">
-    <strong>{{ task.content }}</strong><br>
-    Người nhận: {{ task.assignee.username }}<br>
-    Deadline: {{ task.deadline }}
+    .archive-container {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .archive-card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      width: 400px;
+      min-height: 300px;
+      flex: 1 1 300px;
+    }
+
+    .archive-card h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .task-card {
+      background: #f2f2f2;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border-left: 5px solid #4caf50;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .task-card button {
+      background: #e53935;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+
+    .task-card button:hover {
+      background: #c62828;
+    }
+
+    p {
+      text-align: center;
+      font-style: italic;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📦 Các công việc đã hoàn thành</h1>
+
+  <div class="archive-container">
+    <!-- Cột trái: Đã nhận -->
+    <div class="archive-card">
+      <h2>📥 Công việc bạn đã nhận</h2>
+      {% for task in tasks_received %}
+        <div class="task-card" id="task-{{ task.id }}">
+          <strong>{{ task.content }}</strong><br>
+          Giao bởi: {{ task.assigner.username }}<br>
+          Deadline: {{ task.deadline }}<br>
+          <button onclick="deleteArchivedTask({{ task.id }})">🗑 Xoá</button>
+        </div>
+      {% empty %}
+        <p>Không có công việc nào đã nhận.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Cột phải: Đã giao -->
+    <div class="archive-card">
+      <h2>📤 Công việc bạn đã giao</h2>
+      {% for task in tasks_assigned %}
+        <div class="task-card" id="task-{{ task.id }}">
+          <strong>{{ task.content }}</strong><br>
+          Giao cho: {{ task.assignee.username }}<br>
+          Deadline: {{ task.deadline }}<br>
+          <button onclick="deleteArchivedTask({{ task.id }})">🗑 Xoá</button>
+        </div>
+      {% empty %}
+        <p>Không có công việc nào đã giao.</p>
+      {% endfor %}
+    </div>
   </div>
-{% empty %}
-  <p>Không có công việc nào đã giao.</p>
-{% endfor %}
 
-<h3>Bạn đã nhận</h3>
-{% for task in tasks_received %}
-  <div class="task-card">
-    <strong>{{ task.content }}</strong><br>
-    Giao bởi: {{ task.assigner.username }}<br>
-    Deadline: {{ task.deadline }}
-  </div>
-{% empty %}
-  <p>Không có công việc nào đã nhận.</p>
-{% endfor %}
-{% endblock %}
+  <!-- ✅ JS xử lý xoá -->
+  {% comment %} <script>
+    function getCookie(name) {
+      return document.cookie
+        .split(";")
+        .map(c => c.trim())
+        .find(c => c.startsWith(name + "="))
+        ?.split("=")[1] ?? "";
+    }
+
+    function deleteArchivedTask(taskId) {
+      fetch(`/delete-archived-task/${taskId}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken")
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const card = document.getElementById(`task-${taskId}`);
+          if (card) card.remove();
+        } else {
+          alert(data.error || "Không thể xoá công việc.");
+        }
+      });
+    }
+  </script> {% endcomment %}
+
+</body>
+</html>
