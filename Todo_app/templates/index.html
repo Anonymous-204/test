@@ -24,10 +24,6 @@
       <a href="/archive/">✅ Hoàn thành</a>
       <!-- Nút mở menu Thành viên -->
       <a href="/friends/">👥 Thành viên</a>
-
-
-
-
       <!-- Nút mở form -->
       <button id="show-form-task" class="btn1">+ Giao việc</button>
 
@@ -53,50 +49,7 @@
     </div>
   </nav>
 
-  <!-- Nội dung chính -->
-  <main class="main-content">
-    <h1>Chào mừng bạn đến với Todo App</h1>
-    <p>Xin chào {{ user.username }}</p>
-  </main>
-
-
-<div id="sent-tasks" class="task-list" style="margin-top: 2rem;">
-  <div class="task-container">
-    
-    <!-- Cột trái: Công việc bạn đang nhận -->
-    <div class="task-column">
-      <h2>📥 Công việc bạn đang nhận</h2>
-      {% for task in tasks_i_receive %}
-        <div class="task-card" id="task-{{ task.id }}">
-          <strong>{{ task.content }}</strong><br>
-          Giao bởi: {{ task.assigner.username }}<br>
-          Deadline: {{ task.deadline }}<br>
-          <button onclick="completeTask({{ task.id }})">✔ Hoàn thành</button>
-          <button onclick="deleteTask({{ task.id }})">🗑 Xoá công việc</button>
-        </div>
-      {% empty %}
-        <p>Bạn chưa nhận công việc nào.</p>
-      {% endfor %}
-    </div>
-
-    <!-- Cột phải: Công việc bạn đã giao -->
-    <div class="task-column">
-      <h2>📤 Công việc bạn đã giao</h2>
-      {% for task in tasks_i_assign %}
-        <div class="task-card" id="task-{{ task.id }}">
-          <strong>{{ task.content }}</strong><br>
-          Giao cho: {{ task.assignee.username }}<br>
-          Deadline: {{ task.deadline }}<br>
-          <button onclick="completeTask({{ task.id }})">✔ Hoàn thành</button>
-          <button onclick="deleteTask({{ task.id }})">🗑 Xoá công việc</button>
-        </div>
-      {% empty %}
-        <p>Chưa có công việc nào được giao.</p>
-      {% endfor %}
-    </div>
-
-  </div>
-</div>
+{%block content2%}{%endblock%}
 
 </body>
 </html>

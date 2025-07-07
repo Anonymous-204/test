@@ -21,20 +21,6 @@ def friends_view(request):
     all_users = User.objects.all().order_by("username")
     return render(request, "friends.html", {"friends": all_users})
 
-def index_view(request):
-    if not request.user.is_authenticated:
-        return redirect('/login/')  # Chưa login thì đẩy về login
-
-
-    # Các task đã giao và đang nhận
-    tasks_i_assign = Task.objects.filter(assigner=request.user).order_by('-created_at')
-    tasks_i_receive = Task.objects.filter(assignee=request.user).order_by('-created_at')
-
-    return render(request, "index.html", {
-        "user": request.user,
-        "tasks_i_assign": tasks_i_assign,
-        "tasks_i_receive": tasks_i_receive
-    })
 @login_required
 def archive_view(request):
     tasks_assigned = Task.objects.filter(assigner=request.user, is_completed=True)
@@ -148,9 +134,10 @@ from .models import Task
 
 @login_required
 def index_view(request):
-    tasks_i_assign = Task.objects.filter(assigner=request.user, is_completed=False)
-    tasks_i_receive = Task.objects.filter(assignee=request.user, is_completed=False)
-    return render(request, "index.html", {
+    tasks_i_assign = Task.objects.filter(assigner=request.user, is_completed=False).order_by('-created_at')
+    tasks_i_receive = Task.objects.filter(assignee=request.user, is_completed=False).order_by('-created_at')
+
+    return render(request, "lobby.html", {
         "user": request.user,
         "tasks_i_assign": tasks_i_assign,
         "tasks_i_receive": tasks_i_receive

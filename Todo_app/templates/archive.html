@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <title>📦 Các công việc đã hoàn thành</title>
-  {% load static %}
-  <script src="{% static 'menu.js' %}" defer></script>
-  <link rel="stylesheet" href="{% static 'style2.css' %}" />
+{% extends "index.html" %}
+{% block content2 %}
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -70,44 +64,7 @@
       color: #888;
     }
   </style>
-</head>
-<body>
-  <nav class="navbar">
-    <div class="nav-left">
-      📝 Todo App
-      <a href="/archive/">✅ Hoàn thành</a>
-      <!-- Nút mở menu Thành viên -->
-      <a href="/friends/">👥 Thành viên</a>
-
-
-
-
-      <!-- Nút mở form -->
-      <button id="show-form-task" class="btn1">+ Giao việc</button>
-
-      <!-- Form giao việc -->
-      <div id="assignForm" style="display:none; margin-top:1rem;">
-        <form id="assign-form" method="POST">
-          {% csrf_token %}
-          <input type="text" name="assignee" placeholder="Tên người nhận" required>
-          <input type="text" name="content"   placeholder="Nội dung công việc" required>
-          <input type="date" name="deadline"  required>
-          <button type="submit" class="btn1">Giao</button>
-        </form>
-      </div>
-      
-    </div>
-    <div class="nav-right" id="user-menu">
-      <button id="account">👤 Tài khoản ⏷</button>
-      <div class="dropdown hidden" id="dropdown-menu">
-        <a href="/profile/">Hồ sơ</a>
-        <a href="/changepassword/">Đổi mật khẩu</a>
-        <a href="/logout/">Đăng xuất</a>
-      </div>
-    </div>
-  </nav>
-  <h1>📦 Các công việc đã hoàn thành</h1>
-
+  <h1>📦 Danh sách công việc hoàn thành</h1>
   <div class="archive-container">
     <!-- Cột trái: Đã nhận -->
     <div class="archive-card">
@@ -140,34 +97,4 @@
     </div>
   </div>
 
-  <!-- ✅ JS xử lý xoá -->
-  {% comment %} <script>
-    function getCookie(name) {
-      return document.cookie
-        .split(";")
-        .map(c => c.trim())
-        .find(c => c.startsWith(name + "="))
-        ?.split("=")[1] ?? "";
-    }
-
-    function deleteArchivedTask(taskId) {
-      fetch(`/delete-archived-task/${taskId}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken")
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          const card = document.getElementById(`task-${taskId}`);
-          if (card) card.remove();
-        } else {
-          alert(data.error || "Không thể xoá công việc.");
-        }
-      });
-    }
-  </script> {% endcomment %}
-
-</body>
-</html>
+{% endblock  %}

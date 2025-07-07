@@ -1,32 +1,20 @@
-/* ===========================================================
-   MENU/FORMS – ẨN HIỆN TOÀN CỤC
-=========================================================== */
-// ─── Phần tử DOM ───────────────────────────────────────────
-const toggleFriends   = document.getElementById("toggle-friends");
-const friendsList     = document.getElementById("friends-list");
+// ===========================
+// TOGGLE FORM & DROPDOWN
+// ===========================
 
-const toggleAddFriend = document.getElementById("toggle-addfriend");
-const addFriendForm   = document.getElementById("add-friend-form");
-
-const memberBtn       = document.getElementById("member-button");
-const memberDropdown  = document.getElementById("member-dropdown");
-
+// DOM elements
+const assignBtn       = document.getElementById("show-form-task");
+const assignFormWrap  = document.getElementById("assignForm");
 const accountBtn      = document.getElementById("account");
 const accountDropdown = document.getElementById("dropdown-menu");
 
-const assignBtn       = document.getElementById("show-form-task");
-const assignFormWrap  = document.getElementById("assignForm");
-
-// ─── Hàm ẩn tất cả menu/form ──────────────────────────────
+// Ẩn tất cả menu/form hiện tại
 function hideAll() {
-  friendsList?.classList.add("hidden");
-  addFriendForm?.classList.add("hidden");
-  memberDropdown?.classList.add("hidden");
-  accountDropdown?.classList.add("hidden");
   if (assignFormWrap) assignFormWrap.style.display = "none";
+  accountDropdown?.classList.add("hidden");
 }
 
-// ─── Toggle helpers (ẩn hết trước khi bật cái mới) ────────
+// Toggle đơn giản
 function makeToggle(btn, panel, isBlock = false) {
   btn?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -38,58 +26,30 @@ function makeToggle(btn, panel, isBlock = false) {
         panel.classList.toggle("hidden");
       }
     }
-    e.stopPropagation();      // giữ menu khi bấm chính nút
+    e.stopPropagation();
   });
 }
 
-// Bạn bè & Thêm bạn
-makeToggle(toggleFriends, friendsList);
-makeToggle(toggleAddFriend, addFriendForm);
-
-// Thành viên & Tài khoản
-makeToggle(memberBtn,  memberDropdown);
+// Kích hoạt toggle cho các thành phần
+makeToggle(assignBtn, assignFormWrap, true);
 makeToggle(accountBtn, accountDropdown);
 
-// Giao việc
-makeToggle(assignBtn, assignFormWrap, true);
-
-// ─── Ẩn tất cả khi click ngoài khu menu/form ──────────────
+// Ẩn form nếu click ra ngoài
 document.addEventListener("click", function (e) {
-  // Nếu click vào các vùng "cho phép" => không ẩn
   if (
-    toggleFriends?.contains(e.target) || friendsList?.contains(e.target) ||
-    toggleAddFriend?.contains(e.target) || addFriendForm?.contains(e.target) ||
-    memberBtn?.contains(e.target) || memberDropdown?.contains(e.target) ||
-    accountBtn?.contains(e.target) || accountDropdown?.contains(e.target) ||
-    assignBtn?.contains(e.target) || assignFormWrap?.contains(e.target)
+    assignBtn?.contains(e.target) || assignFormWrap?.contains(e.target) ||
+    accountBtn?.contains(e.target) || accountDropdown?.contains(e.target)
   ) {
-    return; // giữ nguyên nếu click vùng hợp lệ
+    return;
   }
-
-  // Nếu không thì ẩn tất cả
   hideAll();
 });
 
 
-/* ===========================================================
-   FRIEND REQUEST  |  ADD TASK (fetch + CSRF)
-=========================================================== */
-// Gửi yêu cầu kết bạn
-document.getElementById("friend-form")?.addEventListener("submit", function (e) {
-  e.preventDefault();
-  fetch("/send-friend-request/", {
-    method: "POST",
-    headers: { "X-CSRFToken": getCookie("csrftoken") },
-    body: new FormData(this)
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("friend-message").innerText = data.message || data.error;
-    this.reset();
-  });
-});
+// ===========================
+// FORM GIAO VIỆC (AJAX)
+// ===========================
 
-// Gửi task mới
 document.getElementById("assign-form")?.addEventListener("submit", async function (e) {
   e.preventDefault();
   const res = await fetch("/add-task/", {
@@ -100,18 +60,28 @@ document.getElementById("assign-form")?.addEventListener("submit", async functio
   const data = await res.json();
   if (data.error) return alert("Lỗi: " + data.error);
 
-  const card = document.createElement("div");
-  card.className = "task-card";
-  card.innerHTML = `
-    <strong>${data.content}</strong><br>
-    Người nhận: ${data.assignee}<br>
-    Deadline&nbsp;: ${data.deadline}`;
-  document.getElementById("sent-tasks").appendChild(card);
+  // Nếu có vùng hiển thị task thì thêm vào
+  const container = document.getElementById("sent-tasks");
+  if (container) {
+    const card = document.createElement("div");
+    card.className = "task-card";
+    card.innerHTML = `
+      <strong>${data.content}</strong><br>
+      Người nhận: ${data.assignee}<br>
+      Deadline&nbsp;: ${data.deadline}`;
+    container.appendChild(card);
+  }
+
   this.reset();
-  hideAll();                          // ẩn form sau khi gửi
+  hideAll();
 });
 
-// Lấy CSRF Django
+
+// ===========================
+// CÁC HÀM TÁC VỤ
+// ===========================
+
+// Lấy CSRF Token từ cookie
 function getCookie(name) {
   return document.cookie
     .split(";")
@@ -119,8 +89,8 @@ function getCookie(name) {
     .find(c => c.startsWith(name + "="))
     ?.split("=")[1] ?? "";
 }
-// công việc
 
+// Hoàn thành công việc
 function completeTask(taskId) {
   fetch(`/complete-task/${taskId}/`, {
     method: "POST",
@@ -137,8 +107,26 @@ function completeTask(taskId) {
   });
 }
 
+// Xoá công việc chưa hoàn thành
 function deleteTask(taskId) {
   fetch(`/delete-task/${taskId}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCookie("csrftoken") }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const card = document.getElementById(`task-${taskId}`);
+      if (card) card.remove();
+    } else {
+      alert(data.error || "Không thể xoá công việc.");
+    }
+  });
+}
+
+// Xoá công việc đã hoàn thành (trong archive)
+function deleteArchivedTask(taskId) {
+  fetch(`/delete-archived-task/${taskId}/`, {
     method: "POST",
     headers: { "X-CSRFToken": getCookie("csrftoken") }
   })
