@@ -4,6 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Danh sách bạn bè</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'style2.css' %}" />
+  <script src="{% static 'menu.js' %}" defer></script>
   <style>
     body {
       font-family: sans-serif;
@@ -38,11 +41,46 @@
   </style>
 </head>
 <body>
-  <h1>👥 Danh sách bạn bè của {{ user.username }}</h1>
+  <nav class="navbar">
+    <div class="nav-left">
+      📝 Todo App
+      <a href="/archive/">✅ Hoàn thành</a>
+      <!-- Nút mở menu Thành viên -->
+      <a href="/friends/">👥 Thành viên</a>
 
-  {% if user.profile.friends.all %}
+
+
+
+      <!-- Nút mở form -->
+      <button id="show-form-task" class="btn1">+ Giao việc</button>
+
+      <!-- Form giao việc -->
+      <div id="assignForm" style="display:none; margin-top:1rem;">
+        <form id="assign-form" method="POST">
+          {% csrf_token %}
+          <input type="text" name="assignee" placeholder="Tên người nhận" required>
+          <input type="text" name="content"   placeholder="Nội dung công việc" required>
+          <input type="date" name="deadline"  required>
+          <button type="submit" class="btn1">Giao</button>
+        </form>
+      </div>
+      
+    </div>
+    <div class="nav-right" id="user-menu">
+      <button id="account">👤 Tài khoản ⏷</button>
+      <div class="dropdown hidden" id="dropdown-menu">
+        <a href="/profile/">Hồ sơ</a>
+        <a href="/changepassword/">Đổi mật khẩu</a>
+        <a href="/logout/">Đăng xuất</a>
+      </div>
+    </div>
+  </nav>
+  <h1>👥 Danh sách thành viên {{ user.username }}</h1>
+
+  {% if friends %}
     <div class="friend-list">
-      {% for friend in user.profile.friends.all %}
+      {% for friend in friends %}
+
         <div class="friend-box">
           <strong>{{ friend.username }}</strong><br/>
           {% if friend.profile.bio %}
@@ -54,7 +92,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <div class="no-friends">Bạn chưa có người bạn nào.</div>
+    <div class="no-friends">Không tìm thấy thành viên nào.</div>
   {% endif %}
 </body>
 </html>

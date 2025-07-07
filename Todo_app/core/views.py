@@ -16,8 +16,10 @@ def login_view(request):
 def register_view(request):
     return render(request, "register.html")
 
+@login_required
 def friends_view(request):
-    return render(request, "friends.html")
+    all_users = User.objects.all().order_by("username")
+    return render(request, "friends.html", {"friends": all_users})
 
 def index_view(request):
     if not request.user.is_authenticated:
