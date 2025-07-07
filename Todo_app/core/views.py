@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -15,6 +16,16 @@ def login_view(request):
 
 def register_view(request):
     return render(request, "register.html")
+
+def changepassword(request):
+    return render(request,'changepassword.html')
+
+@csrf_exempt
+def logout_api(request):
+    if request.method == "POST":
+        logout(request)  
+        return JsonResponse({"success": True, "message": "Đăng xuất thành công"})
+    return JsonResponse({"error": "Chỉ chấp nhận POST"}, status=405)
 
 @login_required
 def friends_view(request):
@@ -109,6 +120,33 @@ def login_api(request):
 
     return JsonResponse({"message": "Chỉ chấp nhận POST."}, status=405)
 
+# đổi mật khẩu
+
+@csrf_exempt
+def change_password_api(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            email = data.get("email")
+            password = data.get("password")
+            newpassword = data.get("newpassword")
+
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return JsonResponse({"message": "Email không tồn tại."}, status=400)
+
+            if not user.check_password(password):
+                return JsonResponse({"message": "Mật khẩu hiện tại không đúng."}, status=400)
+
+            user.set_password(newpassword)
+            user.save()
+            return JsonResponse({"message": "Đổi mật khẩu thành công."})
+
+        except Exception as e:
+            return JsonResponse({"message": "Lỗi xử lý dữ liệu."}, status=500)
+
+    return JsonResponse({"message": "Chỉ chấp nhận POST."}, status=405)
 
 # hàm giao việc
 

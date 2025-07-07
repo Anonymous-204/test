@@ -77,10 +77,6 @@ document.getElementById("assign-form")?.addEventListener("submit", async functio
 });
 
 
-// ===========================
-// CÁC HÀM TÁC VỤ
-// ===========================
-
 // Lấy CSRF Token từ cookie
 function getCookie(name) {
   return document.cookie
@@ -139,4 +135,31 @@ function deleteArchivedTask(taskId) {
       alert(data.error || "Không thể xoá công việc.");
     }
   });
+}
+
+async function logout(event) {
+  // ✅ Chặn hành vi mặc định của thẻ <a href="#"> (cuộn lên đầu trang)
+  if (event) event.preventDefault();
+
+  try {
+    const response = await fetch("/api/logout/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      localStorage.clear();
+      sessionStorage.clear();
+      alert("🚪 Đăng xuất thành công!");
+      window.location.href = "/login/";
+    } else {
+      alert("❌ Lỗi đăng xuất: " + (data.message || "Không rõ nguyên nhân"));
+    }
+  } catch (err) {
+    alert("⚠️ Lỗi kết nối khi đăng xuất: " + err.message);
+  }
 }
