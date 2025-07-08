@@ -12,7 +12,7 @@
     <div class="task-column">
       <h2>📥 Công việc bạn đang nhận</h2>
       {% for task in tasks_i_receive %}
-        <div class="task-card" id="task-{{ task.id }}">
+        <div class="task-card {% if task.deadline <= today %}near-deadline{% endif %}" id="task-{{ task.id }}">
           <strong>{{ task.content }}</strong><br>
           Giao bởi: {{ task.assigner.username }}<br>
           Deadline: {{ task.deadline }}<br>
@@ -28,7 +28,7 @@
     <div class="task-column">
       <h2>📤 Công việc bạn đã giao</h2>
       {% for task in tasks_i_assign %}
-        <div class="task-card" id="task-{{ task.id }}">
+        <div class="task-card {% if task.deadline <= today %}near-deadline{% endif %}" id="task-{{ task.id }}">
           <strong>{{ task.content }}</strong><br>
           Giao cho: {{ task.assignee.username }}<br>
           Deadline: {{ task.deadline }}<br>

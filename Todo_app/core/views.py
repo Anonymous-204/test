@@ -6,7 +6,7 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 import json
-
+from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from core.models import Task
@@ -19,6 +19,18 @@ def register_view(request):
 
 def changepassword(request):
     return render(request,'changepassword.html')
+
+@login_required
+def index_view(request):
+    tasks_i_assign = Task.objects.filter(assigner=request.user, is_completed=False).order_by('-created_at')
+    tasks_i_receive = Task.objects.filter(assignee=request.user, is_completed=False).order_by('-created_at')
+
+    return render(request, "lobby.html", {
+        "user": request.user,
+        "tasks_i_assign": tasks_i_assign,
+        "tasks_i_receive": tasks_i_receive,
+        "today": date.today(),
+    })
 
 @csrf_exempt
 def logout_api(request):
@@ -185,16 +197,6 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import Task
 
-@login_required
-def index_view(request):
-    tasks_i_assign = Task.objects.filter(assigner=request.user, is_completed=False).order_by('-created_at')
-    tasks_i_receive = Task.objects.filter(assignee=request.user, is_completed=False).order_by('-created_at')
-
-    return render(request, "lobby.html", {
-        "user": request.user,
-        "tasks_i_assign": tasks_i_assign,
-        "tasks_i_receive": tasks_i_receive
-    })
 
 @login_required
 def archive_view(request):
