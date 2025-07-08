@@ -97,11 +97,26 @@ function completeTask(taskId) {
     if (data.success) {
       const card = document.getElementById(`task-${taskId}`);
       if (card) card.remove();
+
+      const archiveBox = document.getElementById("archive-list-received");
+      if (archiveBox && data.task) {
+        const archived = document.createElement("div");
+        archived.className = "task-card";
+        archived.id = `task-${data.task.id}`;
+        archived.innerHTML = `
+          <strong>${data.task.content}</strong><br>
+          Giao bởi: ${data.task.assigner}<br>
+          Deadline: ${data.task.deadline}<br>
+          <button onclick="deleteArchivedTask(${data.task.id})">🗑 Xoá công việc</button>
+        `;
+        archiveBox.appendChild(archived);
+      }
     } else {
       alert(data.error || "Có lỗi khi hoàn thành công việc.");
     }
   });
 }
+
 
 // Xoá công việc chưa hoàn thành
 function deleteTask(taskId) {

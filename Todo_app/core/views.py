@@ -1,15 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
+from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth import logout
-from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-import json
-from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+
 from core.models import Task
+import json
+from datetime import date
 
 def login_view(request):
     return render(request, "login.html")
@@ -32,7 +30,6 @@ def index_view(request):
         "today": date.today(),
     })
 
-@csrf_exempt
 def logout_api(request):
     if request.method == "POST":
         logout(request)  
@@ -69,7 +66,6 @@ def archive_view(request):
     })
 
 # hàm đăng ký
-@csrf_exempt
 def register_api(request): 
     print("=== ĐÃ VÀO HÀM register_api ===")
     if request.method == "POST":
@@ -101,7 +97,6 @@ def register_api(request):
     return JsonResponse({"message": "Chỉ chấp nhận POST."}, status=405)
 
 # hàm đăng nhập
-@csrf_exempt
 def login_api(request):
     if request.method == "POST":
         try:
@@ -133,8 +128,6 @@ def login_api(request):
     return JsonResponse({"message": "Chỉ chấp nhận POST."}, status=405)
 
 # đổi mật khẩu
-
-@csrf_exempt
 def change_password_api(request):
     if request.method == "POST":
         try:
@@ -162,7 +155,7 @@ def change_password_api(request):
 
 # hàm giao việc
 
-@csrf_exempt
+
 @login_required
 def add_task_view(request):
     if request.method == 'POST':
@@ -191,13 +184,6 @@ def add_task_view(request):
     return JsonResponse({'error': 'Yêu cầu không hợp lệ'}, status=400)
 
 
-# nút bấm
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from .models import Task
-
-
 @login_required
 def archive_view(request):
     tasks_assigned = Task.objects.filter(assigner=request.user, is_completed=True)
@@ -215,7 +201,17 @@ def complete_task_view(request, task_id):
 
     task.is_completed = True
     task.save()
-    return JsonResponse({'success': True})
+
+    return JsonResponse({
+        'success': True,
+        'task': {
+            'id': task.id,
+            'content': task.content,
+            'assigner': task.assigner.username,
+            'deadline': task.deadline.strftime('%Y-%m-%d')
+        }
+    })
+
 
 @login_required
 def delete_task_view(request, task_id):
